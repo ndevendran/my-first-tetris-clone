@@ -1,6 +1,6 @@
 canvas = document.getElementById("gameboard");
 context = canvas.getContext("2d");
-var board = [];
+var board = new Board();
 var collision = false;
 var pieces = [
                [[0,0,0,0],
@@ -33,8 +33,6 @@ var pieces = [
              ];
              
 var colors = ["red", "cyan", "green", "yellow", "magenta", "grey", "blue"];
-var board_height = 21;
-var board_width = 11;
 var puzzle = new Puzzle();
 var x;
 var y;
@@ -54,6 +52,114 @@ function createEmptyGrid(ywidth, xwidth){
     }
     return newPuzzle;
 }
+
+function Board (){
+	this.board = [];
+	this.board_height = 21;
+	this.board_width = 11;
+	
+	this.mayRotate = function mayRotate(puzzle){
+		var newY;
+		var newX;
+		for(y=0; y<puzzle.array.length; y++){
+			for(x=0; x<puzzle.array[y].length; x++){
+				if(puzzle.array[y][x]){
+					newY = puzzle.array[y].length - 1 - x;
+					newX = y;
+					if((newX + puzzle.topleftx) < 0 || (newX + puzzle.topleftx) >= this.board_width){
+						return false;
+					}
+					if((newY + puzzle.toplefty) >= this.board_height){
+						return false;
+					}
+					if(this.board[puzzle.toplefty+newY][puzzle.topleftx+newX]){
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	};
+	
+	this.mayMoveRight = function mayMoveRight(puzzle){
+		for(y=0; y<puzzle.array.length; y++){
+			for(x=puzzle.array[y].length-1; x>=0; x--){
+				if(puzzle.array[y][x]){
+					if(puzzle.topleftx + 1 + x > this.board_width-1){
+						return false;
+					}
+					if(this.board[puzzle.toplefty+y][puzzle.topleftx+x+1]){
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+    }
+	
+	this.mayMoveLeft = function mayMoveLeft(puzzle){    
+		for(y=0; y<puzzle.array.length; y++){
+			for(x=0; x<puzzle.array[y].length; x++){
+				if(puzzle.array[y][x]){
+					if(puzzle.topleftx - 1 + x < 0){
+						return false;
+					}
+					if(this.board[puzzle.toplefty+y][puzzle.topleftx-1+x]){
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+    }
+	
+	
+	this.mayMoveDown = function mayMoveDown(puzzle){
+        for(y=0; y<puzzle.array.length; y++){
+            for(x=0; x<puzzle.array[y].length; x++){
+                if(puzzle.array[y][x] && y+puzzle.toplefty+1 > this.board_height-1){
+                    return false;
+                }
+                if(puzzle.array[y][x] && y+puzzle.toplefty+1 <= this.board_height){
+                    if(this.board[puzzle.toplefty+1+y][puzzle.topleftx+x]){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+	
+	this.mayPlace = function mayPlace(puzzle){
+        for(y=0; y<puzzle.array.length; y++){
+            for(x=0; x<puzzle.array[y].length; x++){
+                if(puzzle.array[y][x]){
+                    if(this.board[puzzle.toplefty+y][puzzle.topleftx+x]){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+	
+	this.draw = function draw(puzzle){
+		for(y=0; y<this.board.length; y++){
+			for(x=0; x<this.board[y].length; x++){
+				if(this.board[y][x]){
+					// context.fillStyle = board[y][x];
+					// context.fillRect(x*piece_size, y*piece_size, piece_size, piece_size);
+					puzzle.makeBlock(context, this.board[y][x], 0, 0);
+				}
+				else{
+					context.fillStyle = "black";
+					context.fillRect(x*piece_size, y*piece_size, piece_size, piece_size);
+				}
+			}
+		}
+	}
+}
+	
 
 function Puzzle (){
     this.array = [];
@@ -91,28 +197,7 @@ function Puzzle (){
         return 1;
     }
     
-    this.mayRotate = function mayRotate(){
-        var newY;
-        var newX;
-        for(y=0; y<this.array.length; y++){
-            for(x=0; x<this.array[y].length; x++){
-                if(this.array[y][x]){
-                    newY = this.array[y].length - 1 - x;
-                    newX = y;
-                    if((newX + this.topleftx) < 0 || (newX + this.topleftx) >= board_width){
-                        return false;
-                    }
-                    if((newY + this.toplefty) >= board_height){
-                        return false;
-                    }
-                    if(board[this.toplefty+newY][this.topleftx+newX]){
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
+
     
     this.rotate = function rotate(){
         var newPuzzle = createEmptyGrid(this.array.length, this.array[0].length);
@@ -131,78 +216,15 @@ function Puzzle (){
         this.shiftUp();
     }
     
-    this.mayMoveRight = function mayMoveRight(){
-        for(y=0; y<this.array.length; y++){
-            for(x=this.array[y].length-1; x>=0; x--){
-                if(this.array[y][x]){
-                    if(this.topleftx + 1 + x > board_width-1){
-                        return false;
-                    }
-                    if(board[this.toplefty+y][this.topleftx+x+1]){
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
     this.moveRight = function moveRight(){
-        if(this.mayMoveRight()){
             this.topleftx += 1;
-        }
-    }
+	}
 
-    this.mayMoveLeft = function mayMoveLeft(){    
-        for(y=0; y<this.array.length; y++){
-            for(x=0; x<this.array[y].length; x++){
-                if(this.array[y][x]){
-                    if(this.topleftx - 1 + x < 0){
-                        return false;
-                    }
-                    if(board[this.toplefty+y][this.topleftx-1+x]){
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
+
             
 
     this.moveLeft = function moveLeft(){
-        if(this.mayMoveLeft()){
             this.topleftx -= 1;
-        }
-    }
-
-    this.mayMoveDown = function mayMoveDown(){
-        for(y=0; y<this.array.length; y++){
-            for(x=0; x<this.array[y].length; x++){
-                if(this.array[y][x] && y+this.toplefty+1 > board_height-1){
-                    return false;
-                }
-                if(this.array[y][x] && y+this.toplefty+1 <= board_height){
-                    if(board[this.toplefty+1+y][this.topleftx+x]){
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-    
-    this.mayPlace = function mayPlace(){
-        for(y=0; y<this.array.length; y++){
-            for(x=0; x<this.array[y].length; x++){
-                if(this.array[y][x]){
-                    if(board[this.toplefty+y][this.topleftx+x]){
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
     }
     
     this.makeBlock = function makeBlock(context, fill, topleftx, toplefty){
@@ -238,18 +260,18 @@ function Score() {
         }
     };
 
-    this.draw = function draw(){
+    this.draw = function draw(board){
         //coordinates of next piece teaser
         var nextx = 14;
         var nexty = 11;
         context.fillStyle = "black";
-        context.fillRect(board_width*piece_size+piece_size,0,100, 315);
+        context.fillRect(board.board_width*piece_size+piece_size,0,100, 315);
         context.fillStyle = "white";
         context.font = "20px Arial";
-        context.fillText("Score:", board_width*piece_size+piece_size, 20);
-        context.fillText(this.playerScore.toString(), board_width*piece_size+piece_size, 40);
-        context.fillText("Level: " +   this.levels.toString(), board_width*piece_size+piece_size, 80);
-        context.fillText("Lines: " + this.totalLines.toString(), board_width*piece_size+piece_size, 120);
+        context.fillText("Score:", board.board_width*piece_size+piece_size, 20);
+        context.fillText(this.playerScore.toString(), board.board_width*piece_size+piece_size, 40);
+        context.fillText("Level: " +   this.levels.toString(), board.board_width*piece_size+piece_size, 80);
+        context.fillText("Lines: " + this.totalLines.toString(), board.board_width*piece_size+piece_size, 120);
         for(y=0; y<puzzle.next.length; y++){
             for(x=0; x<puzzle.next[y].length; x++){
                 if(puzzle.next[y][x]){
@@ -263,8 +285,8 @@ function Score() {
 
     
 
-for(y=0; y<board_height; y++){
-    board = createEmptyGrid(board_height, board_width);
+for(y=0; y<board.board_height; y++){
+    board.board = createEmptyGrid(board.board_height, board.board_width);
 }
 
 
@@ -297,9 +319,9 @@ function checkLines(){
     lines = [];
     var line_count = 0;
     var notFull = false;
-    for(y=0; y<board.length; y++){
-        for(x=0; x<board[y].length;x++){
-            if(!board[y][x]){
+    for(y=0; y<board.board.length; y++){
+        for(x=0; x<board.board[y].length;x++){
+            if(!board.board[y][x]){
                 notFull = true;
                 break;
             }
@@ -318,8 +340,8 @@ function removeLines(){
     var i;
     for(i=0; i<lines.length; i++){
         for(y = lines[i]; y > 0; y--){
-            for(x=0; x<board[y].length; x++){
-                board[y][x] = board[y-1][x];
+            for(x=0; x<board.board[y].length; x++){
+                board.board[y][x] = board.board[y-1][x];
             }
         }
     }
@@ -332,13 +354,13 @@ function removeLines(){
 
 document.onkeydown = function(e){
         if(!e){e = window.event;}
-        if(e.keyCode == 38 && puzzle.mayRotate()){
-        puzzle.rotate();
+        if(e.keyCode == 38 && board.mayRotate(puzzle)){
+			puzzle.rotate();
         }
-        if(e.keyCode == 37){
+        if(e.keyCode == 37 && board.mayMoveLeft(puzzle)){
             puzzle.moveLeft();
         }
-        if(e.keyCode == 39){
+        if(e.keyCode == 39 && board.mayMoveRight(puzzle)){
             puzzle.moveRight();
         }
 }
@@ -354,13 +376,13 @@ function game_step(){
                 if(puzzle.array[y][x]){
                     var boardX = puzzle.topleftx + x;
                     var boardY = puzzle.toplefty + y;
-                    board[boardY][boardX] = puzzle.fill;
+                    board.board[boardY][boardX] = puzzle.fill;
                 }
             }
         }
         puzzle.toplefty = 0;
-        puzzle.topleftx = Math.floor(board_width/2);
-        if(puzzle.mayPlace()){
+        puzzle.topleftx = Math.floor(board.board_width/2);
+        if(board.mayPlace(puzzle)){
             nextPiece();
             collision = false;
         }
@@ -374,7 +396,7 @@ function game_step(){
     
     puzzle.setBot();
     
-    if(puzzle.mayMoveDown()){
+    if(board.mayMoveDown(puzzle)){
         puzzle.toplefty += 1;
     }
     else{
@@ -383,8 +405,8 @@ function game_step(){
     checkLines();
     removeLines();
 
-    draw_board();
-    score.draw();
+    board.draw(puzzle);
+    score.draw(board);
     puzzle.draw(context);
     var speed = 400-speedBoost*  score.levels;
     gameId = setTimeout(game_step, speed);
@@ -393,21 +415,7 @@ function game_step(){
 /* draw board onto canvas */
 
 
-function draw_board(){
-    for(y=0; y<board.length; y++){
-        for(x=0; x<board[y].length; x++){
-            if(board[y][x]){
-                // context.fillStyle = board[y][x];
-                // context.fillRect(x*piece_size, y*piece_size, piece_size, piece_size);
-                puzzle.makeBlock(context, board[y][x], 0, 0);
-            }
-            else{
-                context.fillStyle = "black";
-                context.fillRect(x*piece_size, y*piece_size, piece_size, piece_size);
-            }
-        }
-    }
-}
+
 
 
 /* initialize game loop */
