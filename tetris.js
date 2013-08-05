@@ -385,7 +385,7 @@ function game_step(){
 
     draw_board();
     score.draw();
-    draw_puzzle();
+    puzzle.draw(context);
     var speed = 400-speedBoost*  score.levels;
     gameId = setTimeout(game_step, speed);
 }
@@ -409,19 +409,6 @@ function draw_board(){
     }
 }
 
-
-
-function draw_puzzle(){
-        // context.fillStyle = puzzle.fill;
-    // for(y=0; y<puzzle.array.length; y++){
-        // for(x=0; x<puzzle.array[y].length; x++){
-            // if(puzzle.array[y][x]){
-                // context.fillRect((puzzle.topleftx+x)*piece_size, (puzzle.toplefty+y)*piece_size, piece_size, piece_size);
-            // }
-        // }
-    // }
-    puzzle.draw(context);
-}
 
 /* initialize game loop */
 
