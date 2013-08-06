@@ -2,48 +2,15 @@ canvas = document.getElementById("gameboard");
 context = canvas.getContext("2d");
 var board = new Board();
 var collision = false;
-var pieces = [
-               [[0,0,0,0],
-                [1,1,1,1],
-                [0,0,0,0],
-                [0,0,0,0]],
-                
-               [[1,1],
-                [1,1]],
-                
-               [[1,1,0],
-                [0,1,1],
-                [0,0,0]],
-               
-               [[1,1,0],
-                [0,1,0],
-                [0,1,0]],
-               
-               [[0,1,1],
-                [0,1,0],
-                [0,1,0]],
-                
-               [[1,1,1],
-                [0,1,0],
-                [0,0,0]],
-                
-               [[0,1,1],
-                [1,1,0],
-                [0,0,0]]
-             ];
-             
-var colors = ["red", "cyan", "green", "yellow", "magenta", "grey", "blue"];
 var puzzle = new Puzzle();
-var x;
-var y;
 var piece_size = 15;
-var lines;
 var score = new Score();
 var gameId;
 var speedBoost = 35;
 
 function createEmptyGrid(ywidth, xwidth){
     var newPuzzle = [];
+	var x, y;
     for(y=0; y<ywidth; y++){
         newPuzzle.push(new Array());
         for(x=0; x<xwidth; x++){
@@ -57,10 +24,10 @@ function Board (){
 	this.board = [];
 	this.board_height = 21;
 	this.board_width = 11;
+	var x, y;
 	
 	this.mayRotate = function mayRotate(puzzle){
-		var newY;
-		var newX;
+		var newY, newY;
 		for(y=0; y<puzzle.array.length; y++){
 			for(x=0; x<puzzle.array[y].length; x++){
 				if(puzzle.array[y][x]){
@@ -170,6 +137,7 @@ function Puzzle (){
     this.toplefty = 0;
     this.bottom;
     this.border = 1;
+	var x, y;
     
     this.setBot = function setBot(){
         for(y=this.array.length-1; y >= 0; y--){
@@ -227,7 +195,7 @@ function Puzzle (){
             this.topleftx -= 1;
     }
     
-    this.makeBlock = function makeBlock(context, fill, topleftx, toplefty){
+    this.makeBlock = function makeBlock(context, fill, topleftx, toplefty, x, y){
         context.fillStyle = "white";
         context.fillRect((topleftx+x)*piece_size, (toplefty+y)*piece_size, piece_size, piece_size);
         context.fillStyle = fill;
@@ -238,7 +206,7 @@ function Puzzle (){
         for(y=0; y<this.array.length; y++){
             for(x=0; x<this.array[y].length; x++){
                 if(this.array[y][x]){
-                    this.makeBlock(context, this.fill, this.topleftx, this.toplefty);
+                    this.makeBlock(context, this.fill, this.topleftx, this.toplefty, x, y);
                 }
             }
         }
@@ -251,6 +219,7 @@ function Score() {
     this.score_array = [40, 100, 300, 1200];
     this.levels = 0;
     this.totalLines = 0;
+	
     
     this.getScore = function getScore(line_count){
         if(line_count > 0){
@@ -264,6 +233,7 @@ function Score() {
         //coordinates of next piece teaser
         var nextx = 14;
         var nexty = 11;
+		var x, y;
         context.fillStyle = "black";
         context.fillRect(board.board_width*piece_size+piece_size,0,100, 315);
         context.fillStyle = "white";
@@ -275,15 +245,13 @@ function Score() {
         for(y=0; y<puzzle.next.length; y++){
             for(x=0; x<puzzle.next[y].length; x++){
                 if(puzzle.next[y][x]){
-                    // context.fillRect((nextx+x)*piece_size, (nexty+y)*piece_size, piece_size, piece_size);
-                    puzzle.makeBlock(context, puzzle.nextFill, nextx, nexty);
+                    //context.fillRect((nextx+x)*piece_size, (nexty+y)*piece_size, piece_size, piece_size);
+                    puzzle.makeBlock(context, puzzle.nextFill, nextx, nexty, x, y);
                 }
             }
         }
     };
 }
-
-    
 
 for(y=0; y<board.board_height; y++){
     board.board = createEmptyGrid(board.board_height, board.board_width);
@@ -293,30 +261,57 @@ for(y=0; y<board.board_height; y++){
 
 /* Randomly pick next piece */
 
-function nextPiece(){
-    var i = Math.floor(Math.random()*pieces.length);
-    if(puzzle.next.length > 0){
-        puzzle.array = puzzle.next;
-        puzzle.fill = puzzle.nextFill;
-        puzzle.next = pieces[i];
-        puzzle.nextFill = colors[i];
-    }
-    else {
-        puzzle.array=pieces[i];
-        puzzle.fill = colors[i];
-        i = Math.floor(Math.random()*pieces.length);
-        puzzle.next = pieces[i];
-        puzzle.nextFill = colors[i];
-    }
-    
+var nextPiece = function (){
+	var pieces = [
+				   [[0,0,0,0],
+					[1,1,1,1],
+					[0,0,0,0],
+					[0,0,0,0]],
+					
+				   [[1,1],
+					[1,1]],
+					
+				   [[1,1,0],
+					[0,1,1],
+					[0,0,0]],
+				   
+				   [[1,1,0],
+					[0,1,0],
+					[0,1,0]],
+				   
+				   [[0,1,1],
+					[0,1,0],
+					[0,1,0]],
+					
+				   [[1,1,1],
+					[0,1,0],
+					[0,0,0]],
+					
+				   [[0,1,1],
+					[1,1,0],
+					[0,0,0]]
+				 ];
+				 
+	var colors = ["red", "cyan", "green", "yellow", "magenta", "grey", "blue"];
+	var i = Math.floor(Math.random()*pieces.length);
+	if(puzzle.next.length > 0){
+		puzzle.array = puzzle.next;
+		puzzle.fill = puzzle.nextFill;
+		puzzle.next = pieces[i];
+		puzzle.nextFill = colors[i];
+	}
+	else {
+		puzzle.array=pieces[i];
+		puzzle.fill = colors[i];
+		i = Math.floor(Math.random()*pieces.length);
+		puzzle.next = pieces[i];
+		puzzle.nextFill = colors[i];
+	}
 }
 
-
-
-
-
 function checkLines(){
-    lines = [];
+	var x, y;
+    var lines = [];
     var line_count = 0;
     var notFull = false;
     for(y=0; y<board.board.length; y++){
@@ -334,10 +329,12 @@ function checkLines(){
         line_count++;
     }
     score.getScore(line_count);
+	return lines;
 }
 
-function removeLines(){
+function removeLines(lines){
     var i;
+	var x, y;
     for(i=0; i<lines.length; i++){
         for(y = lines[i]; y > 0; y--){
             for(x=0; x<board.board[y].length; x++){
@@ -370,6 +367,7 @@ document.onkeydown = function(e){
 nextPiece();
 
 function game_step(){
+	var x, y;
     if(collision){
         for(y=0; y<puzzle.array.length; y++){
             for(x=0; x<puzzle.array[y].length; x++){
@@ -402,8 +400,7 @@ function game_step(){
     else{
         collision = true;
     }
-    checkLines();
-    removeLines();
+    removeLines(checkLines());
 
     board.draw(puzzle);
     score.draw(board);
@@ -412,12 +409,5 @@ function game_step(){
     gameId = setTimeout(game_step, speed);
 }
 
-/* draw board onto canvas */
-
-
-
-
-
 /* initialize game loop */
-
 game_step();
