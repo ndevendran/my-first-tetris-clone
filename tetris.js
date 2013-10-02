@@ -1,12 +1,19 @@
 canvas = document.getElementById("gameboard");
 context = canvas.getContext("2d");
-var board = new Board();
-var collision = false;
-var puzzle = new Puzzle();
-var piece_size = 15;
-var score = new Score();
+
 var gameId;
-var speedBoost = 35;
+
+function game_init(){
+	board = new Board();
+	board.board = createEmptyGrid(board.board_height,board.board_width);
+	collision = false;
+	puzzle = new Puzzle();
+	piece_size = 15;
+	score = new Score();
+	speedBoost = 35;
+}
+
+game_init();
 
 function createEmptyGrid(ywidth, xwidth){
     var newPuzzle = [];
@@ -386,7 +393,11 @@ function game_step(){
         }
         else{
             alert("game over");
-            clearTimeout(gameId);
+            //clearTimeout(gameId);
+			game_init();
+			puzzle.next = [];
+			nextPiece();
+			gameId = setTimeout(game_step, speed);
             return;
         }
 
@@ -409,5 +420,5 @@ function game_step(){
     gameId = setTimeout(game_step, speed);
 }
 
-/* initialize game loop */
+/* start game loop */
 game_step();
