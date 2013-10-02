@@ -10,7 +10,8 @@ function game_init(){
 	puzzle = new Puzzle();
 	piece_size = 15;
 	score = new Score();
-	speedBoost = 35;
+	speed = 48;
+	frames = 0;
 }
 
 game_init();
@@ -224,7 +225,7 @@ function Puzzle (){
 function Score() {
     this.playerScore = 0;
     this.score_array = [40, 100, 300, 1200];
-    this.levels = 0;
+    this.levels = 19;
     this.totalLines = 0;
 	
     
@@ -374,6 +375,7 @@ document.onkeydown = function(e){
 nextPiece();
 
 function game_step(){
+	frames++;
 	var x, y;
     if(collision){
         for(y=0; y<puzzle.array.length; y++){
@@ -397,27 +399,29 @@ function game_step(){
 			game_init();
 			puzzle.next = [];
 			nextPiece();
-			gameId = setTimeout(game_step, speed);
+			gameId = setTimeout(game_step, 15);
             return;
         }
 
     }
     
     puzzle.setBot();
-    
-    if(board.mayMoveDown(puzzle)){
-        puzzle.toplefty += 1;
-    }
-    else{
-        collision = true;
-    }
-    removeLines(checkLines());
+    if(frames >= speed){
+		if(board.mayMoveDown(puzzle)){
+			puzzle.toplefty += 1;
+		}
+		else{
+			collision = true;
+		}
+		removeLines(checkLines());
+		frames = 0;
+	}
 
     board.draw(puzzle);
     score.draw(board);
     puzzle.draw(context);
-    var speed = 400-speedBoost*  score.levels;
-    gameId = setTimeout(game_step, speed);
+    speed = 48 - 2*score.levels;
+    gameId = setTimeout(game_step, 15);
 }
 
 /* start game loop */
