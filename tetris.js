@@ -14,6 +14,7 @@ function game_init(){
 	frames = 0;
 	eventQueue = [];
 	paused = false;
+	drop = false;
 }
 
 game_init();
@@ -386,6 +387,10 @@ function game_step(){
 	frames++;
 	var x, y;
     if(collision){
+		if(drop){
+			drop = false;
+			speed = oldspeed;
+		}
         for(y=0; y<puzzle.array.length; y++){
             for(x=0; x<puzzle.array[y].length; x++){
                 if(puzzle.array[y][x]){
@@ -400,6 +405,7 @@ function game_step(){
         if(board.mayPlace(puzzle)){
             nextPiece();
             collision = false;
+			puzzle.setBot();
         }
         else{
             alert("game over");
@@ -407,13 +413,14 @@ function game_step(){
 			game_init();
 			puzzle.next = [];
 			nextPiece();
+			puzzle.setBot();
 			gameId = setTimeout(game_step, 15);
             return;
         }
 
     }
     
-    puzzle.setBot();
+    
     if(frames >= speed){
 		if(board.mayMoveDown(puzzle)){
 			puzzle.toplefty += 1;
@@ -435,7 +442,9 @@ function game_step(){
         if(event.keyCode == 39 && board.mayMoveRight(puzzle)){
             puzzle.moveRight();
         }
-
+		if(event.keyCode == 17){
+			drop = true;
+		}
 	}
 	
 
@@ -445,6 +454,10 @@ function game_step(){
     speed = 48 - 2*score.levels;
 	if(!paused)
 	{
+		if(drop){
+			var oldspeed = speed;
+			speed = 1;
+		}
 		gameId = setTimeout(game_step, 15);
 	}
 }
