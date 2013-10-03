@@ -12,6 +12,8 @@ function game_init(){
 	score = new Score();
 	speed = 48;
 	frames = 0;
+	eventQueue = [];
+	paused = false;
 }
 
 game_init();
@@ -225,7 +227,7 @@ function Puzzle (){
 function Score() {
     this.playerScore = 0;
     this.score_array = [40, 100, 300, 1200];
-    this.levels = 19;
+    this.levels = 0;
     this.totalLines = 0;
 	
     
@@ -357,18 +359,24 @@ function removeLines(lines){
 
 /* setup keyboard commands */
 
-document.onkeydown = function(e){
-        if(!e){e = window.event;}
-        if(e.keyCode == 38 && board.mayRotate(puzzle)){
-			puzzle.rotate();
-        }
-        if(e.keyCode == 37 && board.mayMoveLeft(puzzle)){
-            puzzle.moveLeft();
-        }
-        if(e.keyCode == 39 && board.mayMoveRight(puzzle)){
-            puzzle.moveRight();
-        }
+document.onkeydown = function(event){
+        if(!event){event = window.event;}
+				if(event.keyCode == 13){
+			if(paused){
+				paused = false;
+				gameId = setTimeout(game_step, 15);
+			}
+			else {
+				paused = true;
+			}
+		}
+		else
+		{
+			eventQueue.push(event);
+		}
 }
+
+
 
 /* The game loop */
 
@@ -416,12 +424,29 @@ function game_step(){
 		removeLines(checkLines());
 		frames = 0;
 	}
+	if(eventQueue.length){
+		event = eventQueue.shift();
+		if(event.keyCode == 38 && board.mayRotate(puzzle)){
+			puzzle.rotate();
+        }
+        if(event.keyCode == 37 && board.mayMoveLeft(puzzle)){
+            puzzle.moveLeft();
+        }
+        if(event.keyCode == 39 && board.mayMoveRight(puzzle)){
+            puzzle.moveRight();
+        }
+
+	}
+	
 
     board.draw(puzzle);
     score.draw(board);
     puzzle.draw(context);
     speed = 48 - 2*score.levels;
-    gameId = setTimeout(game_step, 15);
+	if(!paused)
+	{
+		gameId = setTimeout(game_step, 15);
+	}
 }
 
 /* start game loop */
