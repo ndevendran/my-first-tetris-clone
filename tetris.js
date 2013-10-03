@@ -428,7 +428,6 @@ function game_step(){
 		else{
 			collision = true;
 		}
-		removeLines(checkLines());
 		frames = 0;
 	}
 	if(eventQueue.length){
@@ -447,7 +446,7 @@ function game_step(){
 		}
 	}
 	
-
+	removeLines(checkLines());
     board.draw(puzzle);
     score.draw(board);
     puzzle.draw(context);
